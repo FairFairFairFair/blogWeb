@@ -140,21 +140,21 @@ export default function AppNavbar() {
     <nav className={styles.navbar}>
       <div className={styles.inner}>
         <div className={styles.left}>
-          <Link href="/" className={styles.brand}>
+          <Link href="/" prefetch={false} className={styles.brand}>
             BlogWeb
           </Link>
 
           <div className={styles.links}>
-            <Link href="/" className={styles.link}>
+            <Link href="/" prefetch={false} className={styles.link}>
               Home
             </Link>
 
             {role === 'admin' && (
               <>
-                <Link href="/admin/blogs" className={styles.link}>
+                <Link href="/admin/blogs" prefetch={false} className={styles.link}>
                   Admin Blogs
                 </Link>
-                <Link href="/admin/comments" className={styles.link}>
+                <Link href="/admin/comments" prefetch={false} className={styles.link}>
                   Admin Comments
                 </Link>
               </>
@@ -165,10 +165,10 @@ export default function AppNavbar() {
         <div className={styles.right}>
           {loading ? (
             <>
-              <Link href="/login" className={styles.link}>
+              <Link href="/login" prefetch={false} className={styles.link}>
                 Login
               </Link>
-              <Link href="/register" className={styles.link}>
+              <Link href="/register" prefetch={false} className={styles.link}>
                 Register
               </Link>
             </>
@@ -181,10 +181,10 @@ export default function AppNavbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className={styles.link}>
+              <Link href="/login" prefetch={false} className={styles.link}>
                 Login
               </Link>
-              <Link href="/register" className={styles.link}>
+              <Link href="/register" prefetch={false} className={styles.link}>
                 Register
               </Link>
             </>

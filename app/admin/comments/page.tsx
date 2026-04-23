@@ -32,6 +32,24 @@ function getBlogInfo(comment: CommentItem): RelatedBlog {
   return comment.blogs || null
 }
 
+function withTimeout<T>(promise: PromiseLike<T>, ms = 12000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Request timeout'))
+    }, ms)
+
+    Promise.resolve(promise)
+      .then((value) => {
+        clearTimeout(timer)
+        resolve(value)
+      })
+      .catch((error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+  })
+}
+
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<CommentItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,32 +58,40 @@ export default function AdminCommentsPage() {
 
   const fetchComments = async () => {
     setLoading(true)
+    setMessage('')
 
-    const { data, error } = await supabase
-      .from('comments')
-      .select(`
-        id,
-        blog_id,
-        author_name,
-        content,
-        status,
-        created_at,
-        approved_at,
-        blogs (
-          title,
-          slug
-        )
-      `)
-      .order('created_at', { ascending: false })
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('comments')
+          .select(`
+            id,
+            blog_id,
+            author_name,
+            content,
+            status,
+            created_at,
+            approved_at,
+            blogs (
+              title,
+              slug
+            )
+          `)
+          .order('created_at', { ascending: false }),
+        12000
+      )
 
-    if (error) {
-      setMessage('โหลดคอมเมนต์ไม่สำเร็จ')
+      if (error) {
+        throw error
+      }
+
+      setComments((data || []) as CommentItem[])
+    } catch (error) {
+      console.error('fetchComments error:', error)
+      setMessage('โหลดคอมเมนต์ไม่สำเร็จ หรือใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง')
+    } finally {
       setLoading(false)
-      return
     }
-
-    setComments((data || []) as CommentItem[])
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -136,9 +162,15 @@ export default function AdminCommentsPage() {
           </p>
         </div>
 
-        <Link href="/admin/blogs" className={styles.link}>
-          ไปหน้า Admin Blogs
-        </Link>
+        <div className={styles.actions}>
+          <button onClick={fetchComments} type="button" className={styles.deleteButton}>
+            โหลดใหม่
+          </button>
+
+          <Link href="/admin/blogs" className={styles.linkButton}>
+            ไปหน้า Admin Blogs
+          </Link>
+        </div>
       </div>
 
       {message && <p className={styles.message}>{message}</p>}

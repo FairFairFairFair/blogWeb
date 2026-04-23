@@ -43,6 +43,24 @@ type CoverMode = 'url' | 'upload'
 
 const PAGE_SIZE = 6
 
+function withTimeout<T>(promise: PromiseLike<T>, ms = 12000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Request timeout'))
+    }, ms)
+
+    Promise.resolve(promise)
+      .then((value) => {
+        clearTimeout(timer)
+        resolve(value)
+      })
+      .catch((error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+  })
+}
+
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<BlogItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,73 +85,78 @@ export default function AdminBlogsPage() {
 
   const fetchBlogs = async () => {
     setLoading(true)
+    setMessage('')
 
-    const { data: blogData, error: blogError } = await supabase
-      .from('blogs')
-      .select('*')
-      .order('created_at', { ascending: false })
+    try {
+      const { data: blogData, error: blogError } = await withTimeout(
+        supabase.from('blogs').select('*').order('created_at', { ascending: false }),
+        12000
+      )
 
-    if (blogError) {
-      setMessage('โหลดบทความไม่สำเร็จ')
-      setLoading(false)
-      return
-    }
+      if (blogError) {
+        throw blogError
+      }
 
-    const blogsResult = (blogData || []) as BlogItem[]
-    setBlogs(blogsResult)
+      const blogsResult = (blogData || []) as BlogItem[]
+      setBlogs(blogsResult)
 
-    const initialCoverModes: Record<string, CoverMode> = {}
-    const initialCoverFiles: Record<string, File | null> = {}
+      const initialCoverModes: Record<string, CoverMode> = {}
+      const initialCoverFiles: Record<string, File | null> = {}
 
-    for (const blog of blogsResult) {
-      initialCoverModes[blog.id] =
-        blog.cover_image_mode === 'upload' ? 'upload' : 'url'
-      initialCoverFiles[blog.id] = null
-    }
+      for (const blog of blogsResult) {
+        initialCoverModes[blog.id] =
+          blog.cover_image_mode === 'upload' ? 'upload' : 'url'
+        initialCoverFiles[blog.id] = null
+      }
 
-    setCoverModes(initialCoverModes)
-    setCoverFiles(initialCoverFiles)
+      setCoverModes(initialCoverModes)
+      setCoverFiles(initialCoverFiles)
 
-    const blogIds = blogsResult.map((blog) => blog.id)
+      const blogIds = blogsResult.map((blog) => blog.id)
 
-    if (blogIds.length === 0) {
-      setImageInputs({})
-      setLoading(false)
-      return
-    }
+      if (blogIds.length === 0) {
+        setImageInputs({})
+        return
+      }
 
-    const { data: imageData, error: imageError } = await supabase
-      .from('blog_images')
-      .select('*')
-      .in('blog_id', blogIds)
-      .order('sort_order', { ascending: true })
+      const { data: imageData, error: imageError } = await withTimeout(
+        supabase
+          .from('blog_images')
+          .select('*')
+          .in('blog_id', blogIds)
+          .order('sort_order', { ascending: true }),
+        12000
+      )
 
-    if (imageError) {
-      setMessage('โหลดรูปเพิ่มเติมไม่สำเร็จ')
-      setLoading(false)
-      return
-    }
+      if (imageError) {
+        throw imageError
+      }
 
-    const grouped: Record<string, AdditionalImageInput[]> = {}
+      const grouped: Record<string, AdditionalImageInput[]> = {}
 
-    for (const blog of blogsResult) {
-      grouped[blog.id] = []
-    }
+      for (const blog of blogsResult) {
+        grouped[blog.id] = []
+      }
 
-    ;(imageData as BlogImageItem[] | null)?.forEach((img) => {
-      if (!grouped[img.blog_id]) grouped[img.blog_id] = []
+      ;(imageData as BlogImageItem[] | null)?.forEach((img) => {
+        if (!grouped[img.blog_id]) grouped[img.blog_id] = []
 
-      grouped[img.blog_id].push({
-        mode: img.image_mode === 'upload' ? 'upload' : 'url',
-        url: img.image_url || '',
-        file: null,
-        existingPath: img.image_path ?? null,
-        existingMode: img.image_mode === 'upload' ? 'upload' : 'url',
+        grouped[img.blog_id].push({
+          mode: img.image_mode === 'upload' ? 'upload' : 'url',
+          url: img.image_url || '',
+          file: null,
+          existingPath: img.image_path ?? null,
+          existingMode: img.image_mode === 'upload' ? 'upload' : 'url',
+        })
       })
-    })
 
-    setImageInputs(grouped)
-    setLoading(false)
+      setImageInputs(grouped)
+    } catch (error) {
+      console.error('fetchBlogs error:', error)
+      setMessage('โหลดบทความไม่สำเร็จ หรือใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -179,6 +202,7 @@ export default function AdminBlogsPage() {
     setMessage('สร้างบทความใหม่สำเร็จ')
     await fetchBlogs()
     setCurrentPage(1)
+
     if (data?.id) {
       setSelectedBlogId(data.id)
     }
@@ -521,7 +545,7 @@ export default function AdminBlogsPage() {
     setSelectedBlogId(blog.id)
   }
 
-    const previewAdditionalImages = selectedBlog
+  const previewAdditionalImages = selectedBlog
     ? (imageInputs[selectedBlog.id] || [])
         .filter((item) => item.url?.trim())
         .slice(0, 6)
@@ -535,9 +559,15 @@ export default function AdminBlogsPage() {
           <p className={styles.subtitle}>จัดการบทความได้ง่ายขึ้นผ่านมุมมองแบบการ์ด</p>
         </div>
 
-        <button onClick={handleCreate} className={styles.button}>
-          สร้างบทความใหม่
-        </button>
+        <div className={styles.summaryActions}>
+          <button onClick={fetchBlogs} className={styles.deleteButton} type="button">
+            โหลดใหม่
+          </button>
+
+          <button onClick={handleCreate} className={styles.button} type="button">
+            สร้างบทความใหม่
+          </button>
+        </div>
       </div>
 
       {message && <p className={styles.message}>{message}</p>}
@@ -576,9 +606,7 @@ export default function AdminBlogsPage() {
 
                   <h2 className={styles.summaryTitle}>{blog.title}</h2>
 
-                  <p className={styles.summaryMeta}>
-                    slug: {blog.slug}
-                  </p>
+                  <p className={styles.summaryMeta}>slug: {blog.slug}</p>
 
                   <p className={styles.summaryMeta}>
                     วันที่โพสต์:{' '}
