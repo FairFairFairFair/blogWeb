@@ -147,6 +147,8 @@ Tooling
 - approved_at (timestamptz)
 - approved_by (uuid)
 
+<img width="855" height="806" alt="webBlog" src="https://github.com/user-attachments/assets/76285694-ebf1-49de-a59e-423bb458d9c2" />
+
 ---
 
 ## คำอธิบายการตัดสินใจออกแบบ
