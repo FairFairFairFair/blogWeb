@@ -146,3 +146,70 @@ Tooling
 - created_at (timestamptz)
 - approved_at (timestamptz)
 - approved_by (uuid)
+
+---
+
+## คำอธิบายการตัดสินใจออกแบบ
+### 1) ทำไมเลือกใช้ Next.js
+เลือกใช้ Next.js เพราะเหมาะกับงานเว็บที่มีหลายหน้า, รองรับ routing แบบเป็นระบบ, แยก public page / auth page / admin page ได้ชัดเจน และ deploy ขึ้น Vercel ได้ง่าย
+
+### 2) ทำไมเลือกใช้ Supabase
+เลือกใช้ Supabase เพราะรวมหลายอย่างไว้ในที่เดียว ได้แก่
+- authentication
+- PostgreSQL database
+- storage
+
+---
+## Assumption และข้อจำกัดที่กำหนดเอง
+### Assumption
+- ผู้ใช้ทั่วไปสามารถอ่านบทความได้โดยไม่ต้อง login
+- เฉพาะผู้ใช้ที่มี profiles.role = 'admin' เท่านั้นที่เข้า admin panel ได้
+- ระบบค้นหาค้นหาจากชื่อบทความ
+- แสดงผลบทความหน้าละ 10 รายการ ตามโจทย์
+- บทความหนึ่งมีรูปเพิ่มเติมได้ไม่เกิน 6 รูป ตามโจทย์
+- published_at และ view_count ไม่เปิดให้แก้ไขตรง ๆ ในหน้า admin ตามโจทย์ที่ระบุว่าแอดมินแก้ข้อมูลทั้งหมดของ Blog ได้ ยกเว้นวันที่โพสต์และจำนวนผู้เข้าชม
+- รูปภาพที่อัปโหลดจะถูกเก็บใน Supabase Storage
+
+### ข้อจำกัด
+- การนับ view count ยังเป็นการนับแบบง่าย ไม่ใช่ unique visitor
+- ระบบ editor ของบทความยังเป็น plain text ยังไม่มี rich text editor
+- ระบบค้นหายังเป็นแบบ title matching ธรรมดา ยังไม่ใช่ full-text search
+- คอมเมนต์ยังเป็นการ approve แบบ manual
+- ยังไม่มีระบบ automated tests
+- ถ้าเปิด email confirmation ใน Supabase การสมัครสมาชิกอาจได้รับผลจาก rate limit ของระบบอีเมล
+
+---
+## จะต่ออย่างไรถ้ามีเวลาเพิ่ม
+### ถ้ามีเวลาเพิ่ม ผมจะพัฒนาต่อในลำดับนี้
+#### 1) เพิ่ม validation ฝั่ง server ให้ครบ
+- ตอนนี้แนวทาง validate comment ถูกออกแบบไว้แล้ว แต่หากมีเวลาเพิ่มควรบังคับตรวจที่ฝั่ง server หรือ database layer ด้วย เพื่อกันข้อมูลไม่ตรง requirement หลุดเข้า DB
+
+#### 2) ปรับปรุงระบบนับผู้เข้าชม
+- แยกตาราง analytics หรือใช้แนวทางนับแบบ session / unique user เพื่อให้ view count แม่นยำขึ้น
+
+#### 3) เพิ่ม test
+- unit tests
+- integration tests
+- end-to-end tests สำหรับ flow สำคัญ เช่น login, publish blog, approve comment
+
+#### 4) ปรับระบบจัดการบทความ
+- rich text editor
+- drag-and-drop สำหรับรูป
+- preview ก่อน publish
+
+#### 5) ปรับปรุง production readiness
+- ใช้ custom SMTP แทนค่า default
+- เพิ่ม logging / monitoring
+- ตรวจสอบ RLS และ authorization ให้เข้มขึ้น
+
+---
+# Deployment
+
+## Production URL:
+https://blog-web-roan.vercel.app
+
+## Repository:
+https://github.com/FairFairFairFair/blogWeb
+
+ผู้จัดทำ
+ชื่อ: Warakorn Chanthawong
