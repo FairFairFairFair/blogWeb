@@ -17,7 +17,7 @@ type Blog = {
   published_at: string | null
 }
 
-const PAGE_SIZE = 3
+const PAGE_SIZE = 10
 
 export default async function Home({
   searchParams,
@@ -72,7 +72,7 @@ export default async function Home({
         <p className={styles.badge}>BLOG</p>
         <h1 className={styles.title}>Stories, updates, and ideas worth reading.</h1>
         <p className={styles.subtitle}>
-          รวมบทความ ข่าวสาร และเรื่องราวต่าง ๆ ในรูปแบบที่อ่านง่าย ค้นหาได้ และจัดการได้ผ่านระบบหลังบ้าน
+          รวมบทความ ข่าวสาร และเรื่องราวต่าง ๆ ในรูปแบบที่อ่านง่าย ค้นหาได้
         </p>
       </section>
 

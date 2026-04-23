@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: '%s | BlogWeb',
   },
   description:
-    'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ พร้อมระบบจัดการบทความและคอมเมนต์ผ่านแอดมิน',
+    'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
 
   applicationName: 'BlogWeb',
   keywords: [
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: 'BlogWeb',
     title: 'BlogWeb',
     description:
-      'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ พร้อมระบบจัดการบทความและคอมเมนต์ผ่านแอดมิน',
+      'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
     images: [
       {
         url: '/opengraph-image',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'BlogWeb',
     description:
-      'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ พร้อมระบบจัดการบทความและคอมเมนต์ผ่านแอดมิน',
+      'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
     images: ['/twitter-image'],
   },
 
