@@ -209,27 +209,26 @@ Tooling
 - เพิ่ม rich text editor สำหรับบทความ
 
 ## จะต่ออย่างไรถ้ามีเวลาเพิ่ม
-### ถ้ามีเวลาเพิ่ม ผมจะพัฒนาต่อในลำดับนี้
-#### 1) เพิ่ม validation ฝั่ง server ให้ครบ
-- ตอนนี้แนวทาง validate comment ถูกออกแบบไว้แล้ว แต่หากมีเวลาเพิ่มควรบังคับตรวจที่ฝั่ง server หรือ database layer ด้วย เพื่อกันข้อมูลไม่ตรง requirement หลุดเข้า DB
+### 1) เพิ่ม validation ฝั่ง server ให้ครบ
+- ตอนนี้มีการออกแบบแนวทาง validate comment แล้ว แต่ถ้ามีเวลาเพิ่มควรบังคับตรวจในฝั่ง server หรือ database layer ด้วย เพื่อกันข้อมูลที่ไม่ตรง requirement หลุดเข้า DB
 
-#### 2) ปรับปรุงระบบนับผู้เข้าชม
-- แยกตาราง analytics หรือใช้แนวทางนับแบบ session / unique user เพื่อให้ view count แม่นยำขึ้น
+### 2) ปรับปรุงระบบนับผู้เข้าชม
+- แยก analytics ออกมาเป็นตารางเฉพาะ หรือใช้แนวทางนับแบบ session / unique user เพื่อให้จำนวนผู้เข้าชมแม่นยำขึ้น
 
-#### 3) เพิ่ม test
+### 3) เพิ่ม test
 - unit tests
 - integration tests
 - end-to-end tests สำหรับ flow สำคัญ เช่น login, publish blog, approve comment
 
-#### 4) ปรับระบบจัดการบทความ
+### 4) ปรับระบบจัดการบทความ
 - rich text editor
-- drag-and-drop สำหรับรูป
-- preview ก่อน publish
+- drag-and-drop สำหรับเรียงรูป
+- preview ก่อน publish ให้ละเอียดขึ้น
 
-#### 5) ปรับปรุง production readiness
-- ใช้ custom SMTP แทนค่า default
+### 5) ปรับปรุง production readiness
+- ใช้ custom SMTP แทน default email sender
 - เพิ่ม logging / monitoring
-- ตรวจสอบ RLS และ authorization ให้เข้มขึ้น
+- บันทึกผู้อนุมัติลง approved_by อย่างครบถ้วน
 
 ---
 # Deployment
