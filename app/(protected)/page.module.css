@@ -1,0 +1,225 @@
+.wrapper {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.hero {
+  margin-bottom: 30px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 18px;
+}
+
+.title {
+  margin: 0;
+  max-width: 920px;
+  font-size: clamp(2.6rem, 5vw, 4.8rem);
+  line-height: 1.03;
+  letter-spacing: -0.04em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subtitle {
+  max-width: 720px;
+  margin-top: 16px;
+  color: var(--text-soft);
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.searchBar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 34px;
+  max-width: 760px;
+}
+
+.searchInput {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  border-radius: 16px;
+  padding: 14px 16px;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  border-color: #cbd5e1;
+}
+
+.searchButton {
+  border: none;
+  background: var(--primary);
+  color: white;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.searchButton:hover {
+  background: var(--primary-hover);
+}
+
+.grid {
+  display: grid;
+  gap: 24px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.imageWrap {
+  min-height: 100%;
+  background: var(--bg-soft);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  object-fit: cover;
+}
+
+.cardBody {
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cardTitle {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  line-height: 1.16;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.meta {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+
+.excerpt {
+  color: var(--text-soft);
+  line-height: 1.8;
+  margin-bottom: 22px;
+}
+
+.readMore {
+  align-self: flex-start;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  padding: 12px 16px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.readMore:hover {
+  background: var(--primary-hover);
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-soft);
+  padding: 40px 0;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 36px;
+}
+
+.pageButton {
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.pageButton:hover {
+  background: var(--surface-soft);
+}
+
+.pageInfo {
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .image {
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 32px 16px 56px;
+  }
+
+  .searchBar {
+    flex-direction: column;
+  }
+
+  .searchButton {
+    width: 100%;
+  }
+
+  .cardBody {
+    padding: 18px;
+  }
+
+  .cardTitle {
+    font-size: 1.5rem;
+  }
+}

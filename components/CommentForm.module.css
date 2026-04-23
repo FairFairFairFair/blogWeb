@@ -1,0 +1,64 @@
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.heading {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.input,
+.textarea {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  color: var(--text);
+  outline: none;
+  transition: 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.06);
+}
+
+.textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.button {
+  margin-top: 4px;
+  align-self: flex-start;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  background: var(--primary-hover);
+}
+
+.message {
+  margin-top: 4px;
+  color: var(--text-soft);
+  line-height: 1.7;
+}

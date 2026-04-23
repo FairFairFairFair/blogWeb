@@ -1,0 +1,163 @@
+.wrapper {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 42px 24px 80px;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-bottom: 22px;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.cover {
+  width: 100%;
+  height: auto;
+  max-height: 540px;
+  object-fit: cover;
+  border-radius: 28px;
+  margin: 28px 0;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.contentCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+}
+
+.content {
+  color: var(--text-soft);
+  line-height: 1.95;
+  font-size: 1.05rem;
+  white-space: pre-wrap;
+}
+
+.gallery {
+  margin-top: 30px;
+}
+
+.galleryTitle {
+  margin: 0 0 16px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.galleryImage {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+}
+
+.commentsSection {
+  margin-top: 34px;
+}
+
+.sectionTitle {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.commentsList {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.commentCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.commentName {
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.commentText {
+  color: var(--text-soft);
+  line-height: 1.75;
+}
+
+.empty {
+  color: var(--text-soft);
+}
+
+.formCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.formTitle {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 28px 16px 56px;
+  }
+
+  .contentCard,
+  .formCard {
+    padding: 18px;
+  }
+
+  .galleryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .galleryImage {
+    height: 220px;
+  }
+}

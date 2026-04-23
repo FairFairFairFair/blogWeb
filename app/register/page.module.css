@@ -1,0 +1,101 @@
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+  display: grid;
+  place-items: center;
+  padding: 48px 24px 72px;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+}
+
+.title {
+  margin: 0 0 20px;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  color: var(--text);
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  transition: 0.2s ease;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.06);
+}
+
+.button {
+  padding: 14px 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  background: var(--primary-hover);
+}
+
+.message {
+  margin-top: 8px;
+  color: #b91c1c;
+  line-height: 1.7;
+}
+
+.footerText {
+  margin-top: 18px;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.link:hover {
+  color: var(--primary-hover);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 32px 16px 56px;
+  }
+
+  .card {
+    padding: 24px;
+    border-radius: 22px;
+  }
+}
