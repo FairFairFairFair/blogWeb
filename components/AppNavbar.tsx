@@ -16,8 +16,6 @@ type CachedNavbarState = {
 }
 
 function readCache(): CachedNavbarState | null {
-  if (typeof window === 'undefined') return null
-
   try {
     const raw = sessionStorage.getItem(CACHE_KEY)
     if (!raw) return null
@@ -28,16 +26,12 @@ function readCache(): CachedNavbarState | null {
 }
 
 function writeCache(data: CachedNavbarState) {
-  if (typeof window === 'undefined') return
-
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(data))
   } catch {}
 }
 
 function clearCache() {
-  if (typeof window === 'undefined') return
-
   try {
     sessionStorage.removeItem(CACHE_KEY)
   } catch {}
@@ -46,32 +40,28 @@ function clearCache() {
 export default function AppNavbar() {
   const router = useRouter()
 
-  const [hydrated, setHydrated] = useState(false)
-  const [role, setRole] = useState<UserRole>(null)
-  const [email, setEmail] = useState('')
+  const cached =
+    typeof window !== 'undefined' ? readCache() : null
+
+  const [role, setRole] = useState<UserRole>(cached?.role ?? null)
+  const [email, setEmail] = useState(cached?.email ?? '')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let isMounted = true
+    let mounted = true
 
-    const applySession = async () => {
-      const cached = readCache()
-
-      if (cached && isMounted) {
-        setEmail(cached.email || '')
-        setRole(cached.role || 'user')
-      }
-
+    const loadProfile = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
 
-      if (!isMounted) return
+      if (!mounted) return
 
       if (!session) {
         setRole(null)
         setEmail('')
         clearCache()
-        setHydrated(true)
+        setLoading(false)
         return
       }
 
@@ -83,7 +73,7 @@ export default function AppNavbar() {
         .eq('id', session.user.id)
         .maybeSingle()
 
-      if (!isMounted) return
+      if (!mounted) return
 
       const nextRole = (profile?.role as UserRole) || 'user'
 
@@ -93,19 +83,21 @@ export default function AppNavbar() {
         email: nextEmail,
         role: nextRole,
       })
-      setHydrated(true)
+      setLoading(false)
     }
 
-    applySession()
+    loadProfile()
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return
+
       if (!session) {
         setRole(null)
         setEmail('')
         clearCache()
-        setHydrated(true)
+        setLoading(false)
         return
       }
 
@@ -117,6 +109,8 @@ export default function AppNavbar() {
         .eq('id', session.user.id)
         .maybeSingle()
 
+      if (!mounted) return
+
       const nextRole = (profile?.role as UserRole) || 'user'
 
       setEmail(nextEmail)
@@ -125,11 +119,11 @@ export default function AppNavbar() {
         email: nextEmail,
         role: nextRole,
       })
-      setHydrated(true)
+      setLoading(false)
     })
 
     return () => {
-      isMounted = false
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])
@@ -155,7 +149,7 @@ export default function AppNavbar() {
               Home
             </Link>
 
-            {hydrated && role === 'admin' && (
+            {role === 'admin' && (
               <>
                 <Link href="/admin/blogs" className={styles.link}>
                   Admin Blogs
@@ -169,8 +163,15 @@ export default function AppNavbar() {
         </div>
 
         <div className={styles.right}>
-          {!hydrated ? (
-            <div style={{ width: 160, height: 24 }} />
+          {loading ? (
+            <>
+              <Link href="/login" className={styles.link}>
+                Login
+              </Link>
+              <Link href="/register" className={styles.link}>
+                Register
+              </Link>
+            </>
           ) : email ? (
             <>
               <span className={styles.email}>{email}</span>
