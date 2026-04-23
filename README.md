@@ -94,9 +94,55 @@ Tooling
 ---
 
 ## โครงสร้างหน้าเว็บ
-/ -> หน้ารวมบทความ
-/blog/[slug] -> หน้ารายละเอียดบทความ
-/login -> หน้าเข้าสู่ระบบ
-/register -> หน้าสมัครสมาชิก
-/admin/blogs -> หน้าจัดการบทความของแอดมิน
-/admin/comments -> หน้าจัดการคอมเมนต์ของแอดมิ
+- / -> หน้ารวมบทความ
+- /blog/[slug] -> หน้ารายละเอียดบทความ
+- /login -> หน้าเข้าสู่ระบบ
+- /register -> หน้าสมัครสมาชิก
+- /admin/blogs -> หน้าจัดการบทความของแอดมิน
+- /admin/comments -> หน้าจัดการคอมเมนต์ของแอดมิน
+
+---
+## Database Schema
+โปรเจกต์นี้ออกแบบฐานข้อมูลเป็น 4 ตารางหลัก ตามแนวคิดของระบบ Blog ที่มีบทความ รูปเพิ่มเติม คอมเมนต์ และสิทธิ์ผู้ใช้
+
+1) profiles
+ใช้เก็บ role ของผู้ใช้ โดยเชื่อมกับ auth.users
+- id (uuid, PK) → อ้างอิงจาก auth.users.id
+- role (text) → เช่น admin, user
+- created_at (timestamptz)
+  
+2) blogs
+ใช้เก็บข้อมูลหลักของบทความ
+- id (uuid, PK)
+- title (text)
+- slug (text)
+- excerpt (text)
+- content (text)
+- cover_image_url (text)
+- cover_image_mode (text) → url หรือ upload
+- cover_image_path (text)
+- is_published (bool)
+- published_at (timestamptz)
+- view_count (int4)
+- created_at (timestamptz)
+- updated_at (timestamptz)
+  
+3) blog_images
+ใช้เก็บรูปเพิ่มเติมของแต่ละบทความ
+- id (uuid, PK)
+- blog_id (uuid, FK → blogs.id)
+- image_url (text)
+- image_mode (text) → url หรือ upload
+- image_path (text)
+- sort_order (int2)
+
+4) comments
+ใช้เก็บคอมเมนต์และสถานะการอนุมัติ
+- id (uuid, PK)
+- blog_id (uuid, FK → blogs.id)
+- author_name (text)
+- content (text)
+- status (text) → pending, approved, rejected
+- created_at (timestamptz)
+- approved_at (timestamptz)
+- approved_by (uuid)
