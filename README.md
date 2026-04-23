@@ -37,8 +37,9 @@ cd blogWeb
 npm install
 
 ### 3) สร้างไฟล์ environment
-NEXT_PUBLIC_SUPABASE_URL= supaBase URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=supaBase ANON Key
+
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 ### 4) รันโปรเจกต์ในโหมดพัฒนา
 npm run dev
@@ -167,18 +168,20 @@ Tooling
 - ผู้ใช้ทั่วไปสามารถอ่านบทความได้โดยไม่ต้อง login
 - เฉพาะผู้ใช้ที่มี profiles.role = 'admin' เท่านั้นที่เข้า admin panel ได้
 - ระบบค้นหาค้นหาจากชื่อบทความ
-- แสดงผลบทความหน้าละ 10 รายการ ตามโจทย์
-- บทความหนึ่งมีรูปเพิ่มเติมได้ไม่เกิน 6 รูป ตามโจทย์
-- published_at และ view_count ไม่เปิดให้แก้ไขตรง ๆ ในหน้า admin ตามโจทย์ที่ระบุว่าแอดมินแก้ข้อมูลทั้งหมดของ Blog ได้ ยกเว้นวันที่โพสต์และจำนวนผู้เข้าชม
+- หน้ารวม Blog แสดงผลหน้าละ 10 รายการตามโจทย์
+- หนึ่งบทความมีรูปเพิ่มเติมได้ไม่เกิน 6 รูปตามโจทย์
+- published_at และ view_count ไม่เปิดให้แก้ไขตรง ๆ ในหน้า admin
 - รูปภาพที่อัปโหลดจะถูกเก็บใน Supabase Storage
+- หน้า Admin Blogs ใช้มุมมองแบบ card + modal และแบ่งหน้า 6 รายการต่อหน้าเพื่อให้จัดการสะดวก
 
 ### ข้อจำกัด
 - การนับ view count ยังเป็นการนับแบบง่าย ไม่ใช่ unique visitor
 - ระบบ editor ของบทความยังเป็น plain text ยังไม่มี rich text editor
-- ระบบค้นหายังเป็นแบบ title matching ธรรมดา ยังไม่ใช่ full-text search
+- ระบบค้นหายังเป็น title matching ธรรมดา ยังไม่ใช่ full-text search
 - คอมเมนต์ยังเป็นการ approve แบบ manual
-- ยังไม่มีระบบ automated tests
-- ถ้าเปิด email confirmation ใน Supabase การสมัครสมาชิกอาจได้รับผลจาก rate limit ของระบบอีเมล
+- ยังไม่มี automated tests
+- หากเปิด email confirmation ใน Supabase การสมัครสมาชิกอาจได้รับผลจาก rate limit ของระบบอีเมล
+- การ validate comment ควรเสริมฝั่ง server ให้สมบูรณ์ขึ้นในอนาคต
 
 ---
 ## ทำถึงไหนแล้ว
