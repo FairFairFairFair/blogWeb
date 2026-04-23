@@ -181,6 +181,30 @@ Tooling
 - ถ้าเปิด email confirmation ใน Supabase การสมัครสมาชิกอาจได้รับผลจาก rate limit ของระบบอีเมล
 
 ---
+## ทำถึงไหนแล้ว
+- ส่วนที่ทำเสร็จแล้ว
+- หน้ารวม Blog
+- ค้นหาจากชื่อ Blog
+- Pagination
+- หน้ารายละเอียด Blog
+- ระบบแสดง view count
+- ระบบคอมเมนต์
+- ระบบ approve / reject comment
+- ระบบ login / register / logout
+- ระบบ admin แยกสิทธิ์ด้วย role
+- ระบบจัดการ Blog
+- ระบบจัดการรูปปกและรูปเพิ่มเติม
+- รองรับทั้ง URL และอัปโหลดไฟล์
+- Deploy ขึ้น Vercel
+- ตั้งค่า metadata, favicon, opengraph image, twitter image, manifest
+## ส่วนที่ยังสามารถพัฒนาต่อได้
+- เพิ่ม server-side validation ให้รัดกุมขึ้น
+- เพิ่มระบบ test
+- ปรับ UX ของ admin ให้ลื่นขึ้นอีก
+- ทำ audit log สำหรับการ approve / reject comment
+- ทำ unique view count ที่แม่นยำขึ้น
+- เพิ่ม rich text editor สำหรับบทความ
+
 ## จะต่ออย่างไรถ้ามีเวลาเพิ่ม
 ### ถ้ามีเวลาเพิ่ม ผมจะพัฒนาต่อในลำดับนี้
 #### 1) เพิ่ม validation ฝั่ง server ให้ครบ
