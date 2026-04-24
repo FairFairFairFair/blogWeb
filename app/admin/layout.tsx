@@ -36,12 +36,7 @@ export default function AdminLayout({
 
         if (cancelled) return
 
-        if (profileError || !profile) {
-          window.location.replace('/')
-          return
-        }
-
-        if (profile.role !== 'admin') {
+        if (profileError || !profile || profile.role !== 'admin') {
           window.location.replace('/')
           return
         }

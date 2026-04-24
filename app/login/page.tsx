@@ -56,10 +56,12 @@ export default function LoginPage() {
         profile = { role: 'user' }
       }
 
-      const target = profile.role === 'admin' ? '/admin/blogs' : '/'
+      if (profile.role === 'admin') {
+        window.location.assign('/admin/blogs')
+        return
+      }
 
-      // ใช้ hard redirect จะเสถียรกว่า router.push หลัง auth
-      window.location.assign(target)
+      window.location.assign('/')
     } catch (error) {
       console.error('login error:', error)
       setMessage('เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
