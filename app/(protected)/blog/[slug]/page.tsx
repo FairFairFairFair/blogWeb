@@ -127,7 +127,6 @@ export default async function BlogDetail({ params }: PageProps) {
       </section>
 
       <section className={styles.formCard}>
-        <h3 className={styles.formTitle}>แสดงความคิดเห็น</h3>
         <CommentForm blogId={blog.id} />
       </section>
     </main>
