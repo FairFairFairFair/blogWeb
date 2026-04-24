@@ -43,24 +43,6 @@ type CoverMode = 'url' | 'upload'
 
 const PAGE_SIZE = 6
 
-function withTimeout<T>(promise: PromiseLike<T>, ms = 12000): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error('Request timeout'))
-    }, ms)
-
-    Promise.resolve(promise)
-      .then((value) => {
-        clearTimeout(timer)
-        resolve(value)
-      })
-      .catch((error) => {
-        clearTimeout(timer)
-        reject(error)
-      })
-  })
-}
-
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<BlogItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,11 +52,16 @@ export default function AdminBlogsPage() {
   const [coverFiles, setCoverFiles] = useState<Record<string, File | null>>({})
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [savingBlogId, setSavingBlogId] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState('')
 
   const selectedBlog = useMemo(
     () => blogs.find((blog) => blog.id === selectedBlogId) || null,
     [blogs, selectedBlogId]
   )
+
+  const isSavingSelectedBlog =
+    !!selectedBlog && savingBlogId === selectedBlog.id
 
   const totalPages = Math.max(1, Math.ceil(blogs.length / PAGE_SIZE))
 
@@ -88,10 +75,10 @@ export default function AdminBlogsPage() {
     setMessage('')
 
     try {
-      const { data: blogData, error: blogError } = await withTimeout(
-        supabase.from('blogs').select('*').order('created_at', { ascending: false }),
-        12000
-      )
+      const { data: blogData, error: blogError } = await supabase
+        .from('blogs')
+        .select('*')
+        .order('created_at', { ascending: false })
 
       if (blogError) {
         throw blogError
@@ -119,14 +106,11 @@ export default function AdminBlogsPage() {
         return
       }
 
-      const { data: imageData, error: imageError } = await withTimeout(
-        supabase
-          .from('blog_images')
-          .select('*')
-          .in('blog_id', blogIds)
-          .order('sort_order', { ascending: true }),
-        12000
-      )
+      const { data: imageData, error: imageError } = await supabase
+        .from('blog_images')
+        .select('*')
+        .in('blog_id', blogIds)
+        .order('sort_order', { ascending: true })
 
       if (imageError) {
         throw imageError
@@ -153,7 +137,7 @@ export default function AdminBlogsPage() {
       setImageInputs(grouped)
     } catch (error) {
       console.error('fetchBlogs error:', error)
-      setMessage('โหลดบทความไม่สำเร็จ หรือใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง')
+      setMessage('โหลดบทความไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
     } finally {
       setLoading(false)
     }
@@ -209,44 +193,85 @@ export default function AdminBlogsPage() {
   }
 
   const handleDelete = async (blog: BlogItem) => {
+    if (savingBlogId === blog.id) return
+
     const confirmed = window.confirm('ต้องการลบบทความนี้ใช่ไหม?')
     if (!confirmed) return
 
     setMessage('')
 
-    if (blog.cover_image_mode === 'upload' && blog.cover_image_path) {
-      try {
-        await deleteImage(blog.cover_image_path)
-      } catch {
-        setMessage('ลบไฟล์รูปปกไม่สำเร็จ')
+    try {
+      const { data: extraImages, error: extraImagesError } = await supabase
+        .from('blog_images')
+        .select('image_path, image_mode')
+        .eq('blog_id', blog.id)
+
+      if (extraImagesError) {
+        setMessage('โหลดข้อมูลรูปเพิ่มเติมไม่สำเร็จ')
         return
       }
+
+      if (blog.cover_image_mode === 'upload' && blog.cover_image_path) {
+        try {
+          await deleteImage(blog.cover_image_path)
+        } catch {
+          setMessage('ลบไฟล์รูปปกไม่สำเร็จ')
+          return
+        }
+      }
+
+      for (const image of extraImages || []) {
+        if (image.image_mode === 'upload' && image.image_path) {
+          try {
+            await deleteImage(image.image_path)
+          } catch {
+            setMessage('ลบไฟล์รูปเพิ่มเติมไม่สำเร็จ')
+            return
+          }
+        }
+      }
+
+      const { error: deleteCommentsError } = await supabase
+        .from('comments')
+        .delete()
+        .eq('blog_id', blog.id)
+
+      if (deleteCommentsError) {
+        setMessage('ลบคอมเมนต์ของบทความไม่สำเร็จ')
+        return
+      }
+
+      const { error: deleteExtraImagesError } = await supabase
+        .from('blog_images')
+        .delete()
+        .eq('blog_id', blog.id)
+
+      if (deleteExtraImagesError) {
+        setMessage('ลบรูปเพิ่มเติมไม่สำเร็จ')
+        return
+      }
+
+      const { error: deleteBlogError } = await supabase
+        .from('blogs')
+        .delete()
+        .eq('id', blog.id)
+
+      if (deleteBlogError) {
+        setMessage('ลบบทความไม่สำเร็จ')
+        return
+      }
+
+      if (selectedBlogId === blog.id) {
+        setSelectedBlogId(null)
+      }
+
+      setMessage('ลบบทความสำเร็จ')
+      await fetchBlogs()
+      setCurrentPage(1)
+    } catch (error) {
+      console.error('delete blog error:', error)
+      setMessage('เกิดข้อผิดพลาดระหว่างลบบทความ')
     }
-
-    const { error: deleteExtraImagesError } = await supabase
-      .from('blog_images')
-      .delete()
-      .eq('blog_id', blog.id)
-
-    if (deleteExtraImagesError) {
-      setMessage('ลบรูปเพิ่มเติมไม่สำเร็จ')
-      return
-    }
-
-    const { error } = await supabase.from('blogs').delete().eq('id', blog.id)
-
-    if (error) {
-      setMessage('ลบบทความไม่สำเร็จ')
-      return
-    }
-
-    if (selectedBlogId === blog.id) {
-      setSelectedBlogId(null)
-    }
-
-    setMessage('ลบบทความสำเร็จ')
-    await fetchBlogs()
-    setCurrentPage(1)
   }
 
   const handleChange = (
@@ -363,186 +388,232 @@ export default function AdminBlogsPage() {
   }
 
   const handleSave = async (blog: BlogItem) => {
+    if (savingBlogId === blog.id) return
+
+    const fail = (text: string): never => {
+      throw new Error(text)
+    }
+
+    setSavingBlogId(blog.id)
+    setSaveStatus('กำลังบันทึกข้อมูลบทความ...')
     setMessage('')
 
-    const additionalImages = imageInputs[blog.id] || []
+    try {
+      const additionalImages = imageInputs[blog.id] || []
 
-    if (additionalImages.length > 6) {
-      setMessage('รูปเพิ่มเติมได้ไม่เกิน 6 รูป')
-      return
-    }
+      if (additionalImages.length > 6) {
+        fail('รูปเพิ่มเติมได้ไม่เกิน 6 รูป')
+      }
 
-    const selectedCoverMode = coverModes[blog.id] || 'url'
-    const selectedCoverFile = coverFiles[blog.id]
+      const selectedCoverMode = coverModes[blog.id] || 'url'
+      const selectedCoverFile = coverFiles[blog.id]
 
-    let finalCoverImageUrl = blog.cover_image_url?.trim() || null
-    let finalCoverImagePath = blog.cover_image_path || null
-    let finalCoverImageMode: CoverMode = selectedCoverMode
+      let finalCoverImageUrl = blog.cover_image_url?.trim() || null
+      let finalCoverImagePath = blog.cover_image_path || null
+      let finalCoverImageMode: CoverMode = selectedCoverMode
 
-    if (selectedCoverMode === 'upload') {
-      if (selectedCoverFile) {
-        try {
+      if (selectedCoverMode === 'upload') {
+        if (selectedCoverFile) {
+          setSaveStatus('กำลังอัปโหลดรูปปก...')
+
           if (blog.cover_image_mode === 'upload' && blog.cover_image_path) {
-            await deleteImage(blog.cover_image_path)
+            try {
+              await deleteImage(blog.cover_image_path)
+            } catch {
+              fail('ลบรูปปกเดิมไม่สำเร็จ')
+            }
           }
 
-          const uploaded = await uploadImage(
-            selectedCoverFile,
-            `blogs/${blog.id}/cover`
-          )
-
-          finalCoverImageUrl = uploaded.url
-          finalCoverImagePath = uploaded.path
-          finalCoverImageMode = 'upload'
-        } catch {
-          setMessage('อัปโหลดรูปปกไม่สำเร็จ')
-          return
-        }
-      } else if (
-        !(
-          blog.cover_image_mode === 'upload' &&
-          blog.cover_image_path &&
-          blog.cover_image_url
-        )
-      ) {
-        setMessage('กรุณาเลือกไฟล์รูปปก')
-        return
-      }
-    }
-
-    if (selectedCoverMode === 'url') {
-      if (blog.cover_image_mode === 'upload' && blog.cover_image_path) {
-        try {
-          await deleteImage(blog.cover_image_path)
-        } catch {
-          setMessage('ลบรูปปกเดิมไม่สำเร็จ')
-          return
-        }
-      }
-
-      finalCoverImageUrl = blog.cover_image_url?.trim() || null
-      finalCoverImagePath = null
-      finalCoverImageMode = 'url'
-    }
-
-    const payload = {
-      title: blog.title.trim(),
-      slug: generateSlug(blog.slug || blog.title),
-      excerpt: blog.excerpt?.trim() || null,
-      content: blog.content?.trim() || null,
-      cover_image_url: finalCoverImageUrl,
-      cover_image_path: finalCoverImagePath,
-      cover_image_mode: finalCoverImageMode,
-      is_published: blog.is_published,
-      published_at: blog.is_published
-        ? blog.published_at ?? new Date().toISOString()
-        : blog.published_at,
-      updated_at: new Date().toISOString(),
-    }
-
-    const { error: blogError } = await supabase
-      .from('blogs')
-      .update(payload)
-      .eq('id', blog.id)
-
-    if (blogError) {
-      setMessage('บันทึกบทความไม่สำเร็จ')
-      return
-    }
-
-    const finalAdditionalRows: {
-      blog_id: string
-      image_url: string
-      image_path: string | null
-      image_mode: 'url' | 'upload'
-      sort_order: number
-    }[] = []
-
-    for (const item of additionalImages) {
-      if (item.mode === 'url') {
-        const url = item.url.trim()
-        if (!url) continue
-
-        finalAdditionalRows.push({
-          blog_id: blog.id,
-          image_url: url,
-          image_path: null,
-          image_mode: 'url',
-          sort_order: finalAdditionalRows.length + 1,
-        })
-      } else {
-        if (item.file) {
           try {
-            const uploaded = await uploadImage(item.file, `blogs/${blog.id}/additional`)
+            const uploaded = await uploadImage(
+              selectedCoverFile,
+              `blogs/${blog.id}/cover`
+            )
 
+            finalCoverImageUrl = uploaded.url
+            finalCoverImagePath = uploaded.path
+            finalCoverImageMode = 'upload'
+          } catch {
+            fail('อัปโหลดรูปปกไม่สำเร็จ')
+          }
+        } else if (
+          !(
+            blog.cover_image_mode === 'upload' &&
+            blog.cover_image_path &&
+            blog.cover_image_url
+          )
+        ) {
+          fail('กรุณาเลือกไฟล์รูปปก')
+        }
+      }
+
+      if (selectedCoverMode === 'url') {
+        if (blog.cover_image_mode === 'upload' && blog.cover_image_path) {
+          setSaveStatus('กำลังลบรูปปกเดิม...')
+
+          try {
+            await deleteImage(blog.cover_image_path)
+          } catch {
+            fail('ลบรูปปกเดิมไม่สำเร็จ')
+          }
+        }
+
+        finalCoverImageUrl = blog.cover_image_url?.trim() || null
+        finalCoverImagePath = null
+        finalCoverImageMode = 'url'
+      }
+
+      setSaveStatus('กำลังอัปเดตข้อมูลบทความ...')
+
+      const payload = {
+        title: blog.title.trim(),
+        slug: generateSlug(blog.slug || blog.title),
+        excerpt: blog.excerpt?.trim() || null,
+        content: blog.content?.trim() || null,
+        cover_image_url: finalCoverImageUrl,
+        cover_image_path: finalCoverImagePath,
+        cover_image_mode: finalCoverImageMode,
+        is_published: blog.is_published,
+        published_at: blog.is_published
+          ? blog.published_at ?? new Date().toISOString()
+          : blog.published_at,
+        updated_at: new Date().toISOString(),
+      }
+
+      const { error: blogError } = await supabase
+        .from('blogs')
+        .update(payload)
+        .eq('id', blog.id)
+
+      if (blogError) {
+        fail('บันทึกบทความไม่สำเร็จ')
+      }
+
+      const finalAdditionalRows: {
+        blog_id: string
+        image_url: string
+        image_path: string | null
+        image_mode: 'url' | 'upload'
+        sort_order: number
+      }[] = []
+
+      for (const item of additionalImages) {
+        if (item.mode === 'url') {
+          const url = item.url.trim()
+          if (!url) continue
+
+          finalAdditionalRows.push({
+            blog_id: blog.id,
+            image_url: url,
+            image_path: null,
+            image_mode: 'url',
+            sort_order: finalAdditionalRows.length + 1,
+          })
+        } else {
+          if (item.file) {
+            setSaveStatus('กำลังอัปโหลดรูปเพิ่มเติม...')
+
+            try {
+              const uploaded = await uploadImage(
+                item.file,
+                `blogs/${blog.id}/additional`
+              )
+
+              finalAdditionalRows.push({
+                blog_id: blog.id,
+                image_url: uploaded.url,
+                image_path: uploaded.path,
+                image_mode: 'upload',
+                sort_order: finalAdditionalRows.length + 1,
+              })
+            } catch {
+              fail('อัปโหลดรูปเพิ่มเติมไม่สำเร็จ')
+            }
+          } else if (item.existingPath && item.url) {
             finalAdditionalRows.push({
               blog_id: blog.id,
-              image_url: uploaded.url,
-              image_path: uploaded.path,
+              image_url: item.url,
+              image_path: item.existingPath,
               image_mode: 'upload',
               sort_order: finalAdditionalRows.length + 1,
             })
-          } catch {
-            setMessage('อัปโหลดรูปเพิ่มเติมไม่สำเร็จ')
-            return
           }
-        } else if (item.existingPath && item.url) {
-          finalAdditionalRows.push({
-            blog_id: blog.id,
-            image_url: item.url,
-            image_path: item.existingPath,
-            image_mode: 'upload',
-            sort_order: finalAdditionalRows.length + 1,
-          })
         }
       }
-    }
 
-    const oldUploadPaths = additionalImages
-      .filter((item) => item.existingMode === 'upload' && item.existingPath)
-      .map((item) => item.existingPath as string)
+      const oldUploadPaths = additionalImages
+        .filter((item) => item.existingMode === 'upload' && item.existingPath)
+        .map((item) => item.existingPath as string)
 
-    const keptUploadPaths = new Set(
-      finalAdditionalRows
-        .filter((row) => row.image_mode === 'upload' && row.image_path)
-        .map((row) => row.image_path as string)
-    )
+      const keptUploadPaths = new Set(
+        finalAdditionalRows
+          .filter((row) => row.image_mode === 'upload' && row.image_path)
+          .map((row) => row.image_path as string)
+      )
 
-    for (const oldPath of oldUploadPaths) {
-      if (!keptUploadPaths.has(oldPath)) {
-        try {
-          await deleteImage(oldPath)
-        } catch {
-          setMessage('ลบรูปเพิ่มเติมเดิมไม่สำเร็จ')
-          return
+      for (const oldPath of oldUploadPaths) {
+        if (!keptUploadPaths.has(oldPath)) {
+          setSaveStatus('กำลังลบรูปเพิ่มเติมเดิม...')
+
+          try {
+            await deleteImage(oldPath)
+          } catch {
+            fail('ลบรูปเพิ่มเติมเดิมไม่สำเร็จ')
+          }
         }
       }
-    }
 
-    const { error: deleteImageError } = await supabase
-      .from('blog_images')
-      .delete()
-      .eq('blog_id', blog.id)
+      setSaveStatus('กำลังอัปเดตรูปเพิ่มเติม...')
 
-    if (deleteImageError) {
-      setMessage('บันทึกรูปเพิ่มเติมไม่สำเร็จ')
-      return
-    }
-
-    if (finalAdditionalRows.length > 0) {
-      const { error: insertImageError } = await supabase
+      const { error: deleteImageError } = await supabase
         .from('blog_images')
-        .insert(finalAdditionalRows)
+        .delete()
+        .eq('blog_id', blog.id)
 
-      if (insertImageError) {
-        setMessage('บันทึกรูปเพิ่มเติมไม่สำเร็จ')
-        return
+      if (deleteImageError) {
+        fail('บันทึกรูปเพิ่มเติมไม่สำเร็จ')
       }
-    }
 
-    setMessage('บันทึกบทความสำเร็จ')
-    await fetchBlogs()
-    setSelectedBlogId(blog.id)
+      if (finalAdditionalRows.length > 0) {
+        const { error: insertImageError } = await supabase
+          .from('blog_images')
+          .insert(finalAdditionalRows)
+
+        if (insertImageError) {
+          fail('บันทึกรูปเพิ่มเติมไม่สำเร็จ')
+        }
+      }
+
+      setBlogs((prev) =>
+        prev.map((item) =>
+          item.id === blog.id
+            ? {
+                ...item,
+                ...payload,
+                cover_image_url: finalCoverImageUrl,
+                cover_image_path: finalCoverImagePath,
+                cover_image_mode: finalCoverImageMode,
+              }
+            : item
+        )
+      )
+
+      setMessage('บันทึกบทความสำเร็จ')
+      setSelectedBlogId(null)
+
+      // โหลดข้อมูลใหม่แบบ background ไม่ต้องรอให้ popup ค้าง
+      void fetchBlogs()
+    } catch (error) {
+      console.error('save blog error:', error)
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'เกิดข้อผิดพลาดระหว่างบันทึกบทความ'
+      )
+    } finally {
+      setSaveStatus('')
+      setSavingBlogId(null)
+    }
   }
 
   const previewAdditionalImages = selectedBlog
@@ -672,7 +743,11 @@ export default function AdminBlogsPage() {
       {selectedBlog && (
         <div
           className={styles.modalOverlay}
-          onClick={() => setSelectedBlogId(null)}
+          onClick={() => {
+            if (!isSavingSelectedBlog) {
+              setSelectedBlogId(null)
+            }
+          }}
         >
           <div
             className={styles.modalCard}
@@ -687,9 +762,14 @@ export default function AdminBlogsPage() {
               <button
                 type="button"
                 className={styles.closeButton}
-                onClick={() => setSelectedBlogId(null)}
+                onClick={() => {
+                  if (!isSavingSelectedBlog) {
+                    setSelectedBlogId(null)
+                  }
+                }}
+                disabled={isSavingSelectedBlog}
               >
-                ปิด
+                {isSavingSelectedBlog ? 'กำลังบันทึก...' : 'ปิด'}
               </button>
             </div>
 
@@ -704,6 +784,7 @@ export default function AdminBlogsPage() {
                       onChange={(e) =>
                         handleChange(selectedBlog.id, 'title', e.target.value)
                       }
+                      disabled={isSavingSelectedBlog}
                     />
                   </div>
 
@@ -715,6 +796,7 @@ export default function AdminBlogsPage() {
                       onChange={(e) =>
                         handleChange(selectedBlog.id, 'slug', e.target.value)
                       }
+                      disabled={isSavingSelectedBlog}
                     />
                   </div>
 
@@ -726,6 +808,7 @@ export default function AdminBlogsPage() {
                       onChange={(e) =>
                         handleChange(selectedBlog.id, 'excerpt', e.target.value)
                       }
+                      disabled={isSavingSelectedBlog}
                     />
                   </div>
 
@@ -737,6 +820,7 @@ export default function AdminBlogsPage() {
                       onChange={(e) =>
                         handleChange(selectedBlog.id, 'content', e.target.value)
                       }
+                      disabled={isSavingSelectedBlog}
                     />
                   </div>
 
@@ -750,6 +834,7 @@ export default function AdminBlogsPage() {
                           name={`cover-mode-${selectedBlog.id}`}
                           checked={(coverModes[selectedBlog.id] || 'url') === 'url'}
                           onChange={() => handleCoverModeChange(selectedBlog.id, 'url')}
+                          disabled={isSavingSelectedBlog}
                         />
                         <span>ใช้ลิงก์</span>
                       </label>
@@ -760,6 +845,7 @@ export default function AdminBlogsPage() {
                           name={`cover-mode-${selectedBlog.id}`}
                           checked={(coverModes[selectedBlog.id] || 'url') === 'upload'}
                           onChange={() => handleCoverModeChange(selectedBlog.id, 'upload')}
+                          disabled={isSavingSelectedBlog}
                         />
                         <span>อัปโหลดไฟล์</span>
                       </label>
@@ -775,6 +861,7 @@ export default function AdminBlogsPage() {
                           handleChange(selectedBlog.id, 'cover_image_url', e.target.value)
                         }
                         placeholder="ใส่ URL รูปปก"
+                        disabled={isSavingSelectedBlog}
                       />
                     ) : (
                       <input
@@ -785,6 +872,7 @@ export default function AdminBlogsPage() {
                         onChange={(e) =>
                           handleCoverFileChange(selectedBlog.id, e.target.files?.[0] || null)
                         }
+                        disabled={isSavingSelectedBlog}
                       />
                     )}
 
@@ -812,6 +900,7 @@ export default function AdminBlogsPage() {
                                 onChange={() =>
                                   handleImageModeChange(selectedBlog.id, index, 'url')
                                 }
+                                disabled={isSavingSelectedBlog}
                               />
                               <span>ใช้ลิงก์</span>
                             </label>
@@ -824,6 +913,7 @@ export default function AdminBlogsPage() {
                                 onChange={() =>
                                   handleImageModeChange(selectedBlog.id, index, 'upload')
                                 }
+                                disabled={isSavingSelectedBlog}
                               />
                               <span>อัปโหลดไฟล์</span>
                             </label>
@@ -839,6 +929,7 @@ export default function AdminBlogsPage() {
                               onChange={(e) =>
                                 handleImageUrlChange(selectedBlog.id, index, e.target.value)
                               }
+                              disabled={isSavingSelectedBlog}
                             />
                           ) : (
                             <input
@@ -853,6 +944,7 @@ export default function AdminBlogsPage() {
                                   e.target.files?.[0] || null
                                 )
                               }
+                              disabled={isSavingSelectedBlog}
                             />
                           )}
 
@@ -868,6 +960,7 @@ export default function AdminBlogsPage() {
                             type="button"
                             onClick={() => handleRemoveImageField(selectedBlog.id, index)}
                             className={styles.deleteButton}
+                            disabled={isSavingSelectedBlog}
                           >
                             ลบรูป
                           </button>
@@ -881,6 +974,7 @@ export default function AdminBlogsPage() {
                           type="button"
                           onClick={() => handleAddImageField(selectedBlog.id, 'url')}
                           className={styles.button}
+                          disabled={isSavingSelectedBlog}
                         >
                           เพิ่มรูปจากลิงก์
                         </button>
@@ -889,6 +983,7 @@ export default function AdminBlogsPage() {
                           type="button"
                           onClick={() => handleAddImageField(selectedBlog.id, 'upload')}
                           className={styles.button}
+                          disabled={isSavingSelectedBlog}
                         >
                           เพิ่มรูปอัปโหลด
                         </button>
@@ -920,6 +1015,7 @@ export default function AdminBlogsPage() {
                         onChange={(e) =>
                           handleChange(selectedBlog.id, 'is_published', e.target.checked)
                         }
+                        disabled={isSavingSelectedBlog}
                       />
                       <span>
                         {selectedBlog.is_published ? 'Published' : 'Unpublished'}
@@ -927,18 +1023,26 @@ export default function AdminBlogsPage() {
                     </label>
                   </div>
                 </div>
+                
+                {isSavingSelectedBlog && (
+                  <p className={styles.helpText}>
+                    {saveStatus || 'กำลังบันทึกบทความ กรุณารอสักครู่...'}
+                  </p>
+                )}
 
                 <div className={styles.actions}>
                   <button
                     onClick={() => handleSave(selectedBlog)}
                     className={styles.button}
+                    disabled={isSavingSelectedBlog}
                   >
-                    บันทึก
+                    {isSavingSelectedBlog ? 'กำลังบันทึก...' : 'บันทึก'}
                   </button>
 
                   <button
                     onClick={() => handleDelete(selectedBlog)}
                     className={styles.deleteButton}
+                    disabled={isSavingSelectedBlog}
                   >
                     ลบ
                   </button>

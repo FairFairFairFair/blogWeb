@@ -2,63 +2,70 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import styles from './page.module.css'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
+
     setMessage('')
+    setLoading(true)
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error || !data.user) {
-      setMessage('เข้าสู่ระบบไม่สำเร็จ')
-      return
-    }
-
-    let { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      setMessage('ไม่สามารถตรวจสอบสิทธิ์ผู้ใช้ได้')
-      return
-    }
-
-    if (!profile) {
-      const { error: insertError } = await supabase.from('profiles').insert([
-        {
-          id: data.user.id,
-          role: 'user',
-        },
-      ])
-
-      if (insertError) {
-        setMessage('สร้างโปรไฟล์ผู้ใช้ไม่สำเร็จ')
+      if (error || !data.user) {
+        setMessage('เข้าสู่ระบบไม่สำเร็จ')
         return
       }
 
-      profile = { role: 'user' }
-    }
+      let { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle()
 
-    if (profile.role === 'admin') {
-      router.push('/admin/blogs')
-      return
-    }
+      if (profileError) {
+        setMessage('ไม่สามารถตรวจสอบสิทธิ์ผู้ใช้ได้')
+        return
+      }
 
-    router.push('/')
+      if (!profile) {
+        const { error: insertError } = await supabase.from('profiles').insert([
+          {
+            id: data.user.id,
+            role: 'user',
+          },
+        ])
+
+        if (insertError) {
+          setMessage('สร้างโปรไฟล์ผู้ใช้ไม่สำเร็จ')
+          return
+        }
+
+        profile = { role: 'user' }
+      }
+
+      const target = profile.role === 'admin' ? '/admin/blogs' : '/'
+
+      // ใช้ hard redirect จะเสถียรกว่า router.push หลัง auth
+      window.location.assign(target)
+    } catch (error) {
+      console.error('login error:', error)
+      setMessage('เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -73,6 +80,8 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={styles.input}
+            disabled={loading}
+            autoComplete="email"
           />
 
           <input
@@ -81,10 +90,12 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={styles.input}
+            disabled={loading}
+            autoComplete="current-password"
           />
 
-          <button type="submit" className={styles.button}>
-            เข้าสู่ระบบ
+          <button type="submit" className={styles.button} disabled={loading}>
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </button>
 
           {message && <p className={styles.message}>{message}</p>}

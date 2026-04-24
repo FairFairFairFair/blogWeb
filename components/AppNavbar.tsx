@@ -1,8 +1,6 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import styles from './AppNavbar.module.css'
 
@@ -38,8 +36,6 @@ function clearCache() {
 }
 
 export default function AppNavbar() {
-  const router = useRouter()
-
   const cached =
     typeof window !== 'undefined' ? readCache() : null
 
@@ -133,30 +129,30 @@ export default function AppNavbar() {
     clearCache()
     setRole(null)
     setEmail('')
-    router.replace('/')
+    window.location.assign('/')
   }
 
   return (
     <nav className={styles.navbar}>
       <div className={styles.inner}>
         <div className={styles.left}>
-          <Link href="/" prefetch={false} className={styles.brand}>
+          <a href="/" className={styles.brand}>
             BlogWeb
-          </Link>
+          </a>
 
           <div className={styles.links}>
-            <Link href="/" prefetch={false} className={styles.link}>
+            <a href="/" className={styles.link}>
               Home
-            </Link>
+            </a>
 
             {role === 'admin' && (
               <>
-                <Link href="/admin/blogs" prefetch={false} className={styles.link}>
+                <a href="/admin/blogs" className={styles.link}>
                   Admin Blogs
-                </Link>
-                <Link href="/admin/comments" prefetch={false} className={styles.link}>
+                </a>
+                <a href="/admin/comments" className={styles.link}>
                   Admin Comments
-                </Link>
+                </a>
               </>
             )}
           </div>
@@ -165,12 +161,12 @@ export default function AppNavbar() {
         <div className={styles.right}>
           {loading ? (
             <>
-              <Link href="/login" prefetch={false} className={styles.link}>
+              <a href="/login" className={styles.link}>
                 Login
-              </Link>
-              <Link href="/register" prefetch={false} className={styles.link}>
+              </a>
+              <a href="/register" className={styles.link}>
                 Register
-              </Link>
+              </a>
             </>
           ) : email ? (
             <>
@@ -181,12 +177,12 @@ export default function AppNavbar() {
             </>
           ) : (
             <>
-              <Link href="/login" prefetch={false} className={styles.link}>
+              <a href="/login" className={styles.link}>
                 Login
-              </Link>
-              <Link href="/register" prefetch={false} className={styles.link}>
+              </a>
+              <a href="/register" className={styles.link}>
                 Register
-              </Link>
+              </a>
             </>
           )}
         </div>

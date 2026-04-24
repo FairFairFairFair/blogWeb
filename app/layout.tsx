@@ -7,9 +7,7 @@ export const metadata: Metadata = {
     default: 'BlogWeb',
     template: '%s | BlogWeb',
   },
-  description:
-    'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
-
+  description: 'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
   applicationName: 'BlogWeb',
   keywords: [
     'BlogWeb',
@@ -23,15 +21,13 @@ export const metadata: Metadata = {
   authors: [{ name: 'BlogWeb' }],
   creator: 'BlogWeb',
   publisher: 'BlogWeb',
-
   openGraph: {
     type: 'website',
     locale: 'th_TH',
     url: 'https://blog-web-roan.vercel.app',
     siteName: 'BlogWeb',
     title: 'BlogWeb',
-    description:
-      'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
+    description: 'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
     images: [
       {
         url: '/opengraph-image',
@@ -41,19 +37,15 @@ export const metadata: Metadata = {
       },
     ],
   },
-
   twitter: {
     card: 'summary_large_image',
     title: 'BlogWeb',
-    description:
-      'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
+    description: 'เว็บบล็อกสำหรับอ่านบทความ ข่าวสาร และอัปเดตต่าง ๆ',
     images: ['/twitter-image'],
   },
-
   alternates: {
     canonical: 'https://blog-web-roan.vercel.app',
   },
-
   manifest: '/manifest.webmanifest',
 }
 
@@ -63,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="th">
+    <html lang="th" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   )

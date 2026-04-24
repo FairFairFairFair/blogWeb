@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import styles from './page.module.css'
@@ -32,24 +31,6 @@ function getBlogInfo(comment: CommentItem): RelatedBlog {
   return comment.blogs || null
 }
 
-function withTimeout<T>(promise: PromiseLike<T>, ms = 12000): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error('Request timeout'))
-    }, ms)
-
-    Promise.resolve(promise)
-      .then((value) => {
-        clearTimeout(timer)
-        resolve(value)
-      })
-      .catch((error) => {
-        clearTimeout(timer)
-        reject(error)
-      })
-  })
-}
-
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<CommentItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,25 +42,22 @@ export default function AdminCommentsPage() {
     setMessage('')
 
     try {
-      const { data, error } = await withTimeout(
-        supabase
-          .from('comments')
-          .select(`
-            id,
-            blog_id,
-            author_name,
-            content,
-            status,
-            created_at,
-            approved_at,
-            blogs (
-              title,
-              slug
-            )
-          `)
-          .order('created_at', { ascending: false }),
-        12000
-      )
+      const { data, error } = await supabase
+        .from('comments')
+        .select(`
+          id,
+          blog_id,
+          author_name,
+          content,
+          status,
+          created_at,
+          approved_at,
+          blogs (
+            title,
+            slug
+          )
+        `)
+        .order('created_at', { ascending: false })
 
       if (error) {
         throw error
@@ -88,7 +66,7 @@ export default function AdminCommentsPage() {
       setComments((data || []) as CommentItem[])
     } catch (error) {
       console.error('fetchComments error:', error)
-      setMessage('โหลดคอมเมนต์ไม่สำเร็จ หรือใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง')
+      setMessage('โหลดคอมเมนต์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
     } finally {
       setLoading(false)
     }
@@ -167,9 +145,9 @@ export default function AdminCommentsPage() {
             โหลดใหม่
           </button>
 
-          <Link href="/admin/blogs" className={styles.linkButton}>
+          <a href="/admin/blogs" className={styles.linkButton}>
             ไปหน้า Admin Blogs
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -281,13 +259,13 @@ export default function AdminCommentsPage() {
                   </button>
 
                   {blog?.slug && (
-                    <Link
+                    <a
                       href={`/blog/${blog.slug}`}
                       target="_blank"
                       className={styles.linkButton}
                     >
                       ดูหน้าบทความ
-                    </Link>
+                    </a>
                   )}
                 </div>
               </article>
