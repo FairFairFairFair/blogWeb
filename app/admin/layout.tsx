@@ -1,61 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useEffect } from 'react'
 import AppNavbar from '@/components/AppNavbar'
+import { useAuth } from '@/components/AuthProvider'
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [loading, setLoading] = useState(true)
+  const { loading, role, isLoggedIn } = useAuth()
 
   useEffect(() => {
-    let cancelled = false
+    if (loading) return
 
-    const checkAdmin = async () => {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession()
-
-        if (cancelled) return
-
-        if (sessionError || !session) {
-          window.location.replace('/login')
-          return
-        }
-
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle()
-
-        if (cancelled) return
-
-        if (profileError || !profile || profile.role !== 'admin') {
-          window.location.replace('/')
-          return
-        }
-
-        setLoading(false)
-      } catch (error) {
-        console.error('admin layout error:', error)
-        if (!cancelled) {
-          window.location.replace('/login')
-        }
-      }
+    if (!isLoggedIn) {
+      window.location.replace('/login')
+      return
     }
 
-    checkAdmin()
-
-    return () => {
-      cancelled = true
+    if (role !== 'admin') {
+      window.location.replace('/')
     }
-  }, [])
+  }, [loading, isLoggedIn, role])
 
   if (loading) {
     return (
@@ -66,6 +33,10 @@ export default function AdminLayout({
         </main>
       </>
     )
+  }
+
+  if (!isLoggedIn || role !== 'admin') {
+    return null
   }
 
   return (
