@@ -30,7 +30,7 @@
 
 ### 1) Clone โปรเจกต์
 
-git clone https://github.com/FairFairFairFair/blogWeb.git
+- git clone https://github.com/FairFairFairFair/blogWeb.git
 - cd blogWeb
 
 ### 2) ติดตั้ง dependencies
@@ -38,8 +38,8 @@ git clone https://github.com/FairFairFairFair/blogWeb.git
 
 ### 3) สร้างไฟล์ environment
 
-NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 ### 4) รันโปรเจกต์ในโหมดพัฒนา
 - npm run dev
