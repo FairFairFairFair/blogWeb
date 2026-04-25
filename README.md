@@ -31,10 +31,10 @@
 ### 1) Clone โปรเจกต์
 
 git clone https://github.com/FairFairFairFair/blogWeb.git
-cd blogWeb
+- cd blogWeb
 
 ### 2) ติดตั้ง dependencies
-npm install
+- npm install
 
 ### 3) สร้างไฟล์ environment
 
