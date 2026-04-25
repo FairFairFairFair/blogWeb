@@ -42,8 +42,8 @@ NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 ### 4) รันโปรเจกต์ในโหมดพัฒนา
-npm run dev
-เปิด broswer http://localhost:3000
+- npm run dev
+- เปิด broswer http://localhost:3000
 
 ---
 
