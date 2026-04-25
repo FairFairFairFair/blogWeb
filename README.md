@@ -26,7 +26,7 @@
 
 ---
 
-## วิธีการรันโปรเจกต์
+## วิธีการรันโปรเจกต์ github
 
 ### 1) Clone โปรเจกต์
 
@@ -42,6 +42,23 @@
 - NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 ### 4) รันโปรเจกต์ในโหมดพัฒนา
+- npm run dev
+- เปิด broswer http://localhost:3000
+
+---
+
+---
+
+## วิธีการรันโปรเจกต์ zip
+
+### 1) แตกไฟล์ zip
+
+- แตกไฟล์โปรเจกต์ แล้วเปิดโฟลเดอร์ด้วย VS Code หรือ terminal
+
+### 2) ติดตั้ง dependencies
+- npm install
+
+### 3) รันโปรเจกต์ในโหมดพัฒนา
 - npm run dev
 - เปิด broswer http://localhost:3000
 
